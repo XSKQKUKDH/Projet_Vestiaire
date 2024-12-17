@@ -1,89 +1,104 @@
 import streamlit as st
 from PIL import Image
+from backend import *
+import os
 
 # Configuration de la page principale
-st.set_page_config(page_title="App Mode", layout="wide")
-
-# Titre de l'application
-st.title("Assistant Mode - Choisissez vos Tenues")
+st.set_page_config(page_title="Vestiaire", layout="wide")
 
 # Barre latérale avec les onglets
-menu = st.sidebar.selectbox("Menu", ["Accueil", "Vestiaire", "Générer des Tenues"])
+menu = st.sidebar.selectbox("Menu", ["Accueil", "Vestiaire", "Génération de tenue"])
 
 # Dictionnaire pour stocker les vêtements téléchargés
 if 'vestiaire' not in st.session_state:
-    st.session_state.vestiaire = {}
+    st.session_state.vestiaire = []
 
-# Fonction pour afficher une barre de défilement horizontale
-def display_horizontal_images(images):
-    # On crée une div avec une barre de défilement horizontale
-    st.markdown("""
-        <style>
-        .scrolling-wrapper {
-            display: flex;
-            flex-direction: row;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        .scrolling-wrapper img {
-            margin-right: 10px;
-            border-radius: 10px;
-        }
-        </style>
-        <div class="scrolling-wrapper">
-    """, unsafe_allow_html=True)
+if 'importation_vetement' not in st.session_state:
+    st.session_state.importation_vetement = False
 
-    # Ajout des images sous forme d'éléments HTML
-    for image in images:
-        # Convertir l'image en base64 pour l'afficher
-        buffered = image_to_base64(image)
-        img_html = f'<img src="data:image/png;base64,{buffered}" width="150" height="200">'
-        st.markdown(img_html, unsafe_allow_html=True)
+if 'vetement_selectione' not in st.session_state:
+    st.session_state.vetement_selectionne = None
 
-    # Fermer la div
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Fonction pour convertir une image en base64 pour l'affichage HTML
-def image_to_base64(image):
-    from io import BytesIO
-    import base64
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return img_str
+categories_vetements = [
+    "T-shirt",
+    "Pull",
+    "Sweatshirt",
+    "Débardeur",
+    "Chemise",
+    "Blouse",
+    "Pantalon",
+    "Jean",
+    "Jogging",
+    "Short",
+    "Jupe",
+    "Veste",
+    "Blouson",
+    "Manteau",
+    "Doudoune",
+    "Gilet",
+    "Robe",
+    "Baskets",
+    "Bottes",
+    "Sandales",
+    "Écharpe",
+    "Chapeau",
+    "Bonnet",
+    "Gants",
+]
 
 # Onglet Accueil
 if menu == "Accueil":
-    st.header("Bienvenue dans votre assistant mode !")
+    st.header("Bienvenue sur Vestiaire !")
     st.write("Ajoutez vos vêtements dans l'onglet **Vestiaire** et générez des tenues dans l'onglet **Générer des Tenues**.")
+    with st.expander('A propos'):
+        st.write('Cette application vous permet de faire un vestiaire de tous vos vêtements et pourra vous générer des tenues !')
 
 # Onglet Vestiaire
 elif menu == "Vestiaire":
     st.header("Votre Vestiaire")
-    
-    # Ajout de vêtements via des images
-    uploaded_files = st.file_uploader("Ajoutez des photos de vos vêtements", accept_multiple_files=True, type=["png", "jpg", "jpeg"])
-    
-    if uploaded_files:
-        for file in uploaded_files:
-            image = Image.open(file)
-            st.session_state.vestiaire[file.name] = image
-            st.image(image, caption=file.name, use_column_width=False, width=400)
-    
-    if st.button("Sauvegarder le vestiaire"):
-        st.success("Vêtements sauvegardés avec succès !")
 
-# Onglet Générer des Tenues
-elif menu == "Générer des Tenues":
-    st.header("Générer des Tenues")
-    
-    if st.session_state.vestiaire:
-        # Afficher les images dans une barre horizontale
-        images = list(st.session_state.vestiaire.values())
-        display_horizontal_images(images)
-    
-        if st.button("Générer une tenue"):
-            # Ici tu pourras ajouter l'algorithme pour générer des tenues
-            st.write("Tenue générée (en attente de l'algorithme) !")
-    else:
-        st.warning("Veuillez ajouter des vêtements dans l'onglet **Vestiaire**.")
+        
+    if st.button('importer_vetements'):
+        st.session_state.importation_vetement = True
+
+    if st.session_state.importation_vetement is True:
+        nom = st.text_input('Nom du vêtement', placeholder='ex : T-shirt NYC')
+        categorie = st.selectbox('Catégorie', options=categories_vetements)
+        couleur = st.selectbox('Couleur', options=["Rouge", "Bleu", "Vert", "Jaune", "Noir", "Blanc", "Gris", "Rose", "Orange", "Marron", "Violet", "Beige", "Turquoise", "Bordeaux", "Kaki", "Bleu marine"])
+        style = st.text_input('Style du vetement', placeholder='ex : baggy')
+        marque = st.text_input('Marque', placeholder='Carhartt')
+        images_importe = st.file_uploader("Ajoutez des photos de vos vêtements", accept_multiple_files=True, type=["png", "jpg", "jpeg", 'webp']) # Ajout de vêtements via des images
+
+        if st.button('Enregistrer vêtement'):
+            ajoute_vetement(nom, categorie, couleur, style, images_importe, marque)
+            st.session_state.importation_vetement = False
+            st.rerun()
+
+    if st.session_state.importation_vetement is False:
+
+        if st.session_state.vetement_selectionne is None:
+            # Titre de la section
+            st.title("Galerie de vêtements")
+
+            with open('vestiaire.json', 'r') as file:
+                vetements = json.load(file)
+
+            # Afficher les vêtements sous forme de galerie
+            cols = st.columns(4)  # Nombre de colonnes dans la galerie
+            for i, vetement in enumerate(vetements):
+                with cols[i % 4]:  # Alterner entre les colonnes
+                    st.image(vetement["lien_image"], caption=vetement["nom"], use_column_width=True)
+        
+        else:
+            st.write("Here's the information about...")
+
+elif menu == "Génération de tenue":
+    st.title("Ici, générez vos tenues !")
+
+    if st.button('Générer tenue automatiquement'):
+        tenue = genere_tenue()
+        
+
+    elif st.button('Générer tenue manuellement'):
+        pass
+

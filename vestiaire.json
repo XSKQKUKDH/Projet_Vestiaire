@@ -1,0 +1,55 @@
+{
+    "hauts": [
+        {
+            "nom": "Pentalon Blanc",
+            "type": "Pantalon",
+            "couleur": "Blanc",
+            "style": "\u00e9l\u00e9gant",
+            "lien_image": "images\\Pentalon Blanc0",
+            "marque": "Levi's",
+            "id": 0
+        },
+        {
+            "nom": "T-shirt Noir",
+            "type": "T-shirt",
+            "couleur": "Noir",
+            "style": "streetwear",
+            "lien_image": "images\\T-shirt Noir1",
+            "marque": "Wasted",
+            "id": 1
+        },
+        {
+            "nom": "Pull Bleu",
+            "type": "Pull",
+            "couleur": "Bleu",
+            "style": "streetwear",
+            "lien_image": "images\\Pull Bleu2",
+            "marque": "aucune",
+            "id": 2
+        },
+        {
+            "nom": "Pull gris",
+            "type": "Pull",
+            "couleur": "Gris",
+            "style": "tkt",
+            "lien_image": "images\\Pull gris3",
+            "marque": "tkt",
+            "id": 3
+        },
+        {
+            "nom": "t shirt vert",
+            "categorie": [
+                "hauts",
+                "T-shirt"
+            ],
+            "couleur": "Vert",
+            "style": "NYC",
+            "lien_image": "images\\t shirt vert4",
+            "marque": "Katio",
+            "id": 4
+        }
+    ],
+    "bas": [],
+    "chaussures": [],
+    "couvre_chef": []
+}
